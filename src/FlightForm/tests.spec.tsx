@@ -3,10 +3,18 @@ import { render, fireEvent } from '@testing-library/react';
 import { useFlightFormModel } from './model';
 import { FlightFormView } from './view';
 import { flightFormSchema } from './validation';
+import { FlightFormModel } from './model/class-model';
 
 function Sut() {
-  // here goes the mock api call
-  const flightFormData = useFlightFormModel();
+  const mockAirports = [
+    { value: 'london', label: 'London' }, { value: 'dubai', label: 'Dubai' }
+  ];
+
+  const flightFormData = useFlightFormModel({ 
+    airports: mockAirports, 
+    loading: false 
+  });
+  
   return <FlightFormView {...flightFormData} />;
 }
 
@@ -29,13 +37,25 @@ describe('Flight Form', () => {
     expect(returnDateErrorMessage).toBeInTheDocument();
   });
 
+  it('should validate class model', async () => {
+    const flightFormModel = new FlightFormModel({
+      firstOrigin: 'london',
+      firstDestination: 'dubai',
+    });
+
+    flightFormModel.addNewPath();
+
+    expect(flightFormModel.secondOrigin).toEqual('dubai');
+    expect(flightFormModel.secondDestination).toEqual('');
+  });
+
   it('should validate if schema validation is correct', () => {
     const { error } = flightFormSchema.safeParse({ 
-      origin: 'london',
-      destination: 'london',
+      firstOrigin: 'london',
+      firstDestination: 'london',
       departureDate: '2024-01-01',
       returnDate: '2024-01-01',
-      passengers: 1
+      passengers: 1,
     })
 
     const errors = error?.errors
